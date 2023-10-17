@@ -1,0 +1,74 @@
+// app.js
+
+const express = require('express');
+const bodyParser = require('body-parser');
+const Player = require('./db'); // Import your Player model which is saved seperatly
+
+const app = express();
+app.use(bodyParser.json());
+
+// API endpoints for adding, updating, and deleting players
+
+app.post('/players', async (req, res) => {
+  try {
+    const playerData = req.body;
+    const player = await Player.create(playerData);
+    res.status(201).json(player);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to add the player' });
+  }
+});
+
+app.put('/players/:id', async (req, res) => {
+  const playerId = req.params.id;
+  const updatedData = req.body;
+
+  try {
+    const updatedPlayer = await Player.findByIdAndUpdate(playerId, updatedData, { new: true });
+    if (!updatedPlayer) {
+      return res.status(404).json({ error: 'Player not found' });
+    }
+    res.status(200).json(updatedPlayer);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update the player' });
+  }
+});
+
+app.delete('/players/:id', async (req, res) => {
+  const playerId = req.params.id;
+
+  try {
+    const deletedPlayer = await Player.findByIdAndDelete(playerId);
+    if (!deletedPlayer) {
+      return res.status(404).json({ error: 'Player not found' });
+    }
+    res.status(200).json({ message: 'Player deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to delete the player' });
+  }
+});
+
+// API endpoint for performing queries
+
+app.get('/players/query', async (req, res) => {
+  const queryType = req.query.type;
+
+  switch (queryType) {
+    case 'mostTouchdownPasses':
+      // example for Implementing the query for the most touchdown passes
+      // const playersWithMostTouchdowns = await Player.find().sort({ touchdownPasses: -1 }).limit(1);
+      // res.status(200).json(playersWithMostTouchdowns);
+      break;
+    case 'mostRushingYards':
+      // Implement the query for the most rushing yards
+      break;
+    // Implement other queries here
+    default:
+      res.status(400).json({ error: 'Invalid query type' });
+  }
+});
+
+const PORT = process.env.PORT || 8080;
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});
